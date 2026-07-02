@@ -25,6 +25,27 @@ architecture write-up lives in the README (owner-authored).
 - Migration handwritten (`packages/db/drizzle/0000_init.sql`) so the pgvector extension and
   the HNSW `vector_cosine_ops` index are created deterministically.
 
+## Retrieval & answers
+
+- Chunking is recursive/boundary-aware (~2000 chars, ~200 overlap), backing up to
+  the last natural break (paragraph > sentence > line) so chunks don't split
+  mid-sentence.
+- Retrieval over-fetches (topK×3), removes near-duplicates (word Jaccard), then
+  caps by count and total context chars.
+- Citations are **numbered** (`[1]`, `[2]`) rather than `[filename]` so the UI can
+  map each citation to a specific passage (multiple chunks can share a filename).
+- `document.content` stores the full extracted text so the source panel can show
+  the whole document with the cited passage highlighted.
+- Anti-hallucination: the grounded prompt refuses verbatim when context is
+  insufficient, and the chat route short-circuits to that refusal on zero retrieval.
+
+## Observability & eval
+
+- pino structured logs carry a request id across ingest → retrieve → LLM, plus
+  latency, token counts, and an estimated USD cost per request.
+- `eval/` harness reports retrieval hit-rate, answer accuracy, and groundedness
+  (Haiku as LLM-as-judge) over a fixed Q&A set across the sample docs.
+
 ## Deliberately out of scope (noted limitations)
 
 - No auth / multi-tenancy.
