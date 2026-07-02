@@ -56,6 +56,7 @@ export async function ingestDocument({
     await markReady(documentId, {
       charCount: text.length,
       chunkCount: pieces.length,
+      content: text,
     });
 
     log.info(

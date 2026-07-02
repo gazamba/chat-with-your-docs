@@ -27,6 +27,8 @@ export const documents = pgTable("document", {
   chunkCount: integer("chunk_count").notNull().default(0),
   status: documentStatus("status").notNull().default("processing"),
   errorMessage: text("error_message"),
+  /** Full normalised extracted text, used to render the source-passage panel. */
+  content: text("content"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

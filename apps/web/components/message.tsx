@@ -1,97 +1,123 @@
 "use client";
 
 import { Fragment, type ReactNode } from "react";
-import { FileText } from "lucide-react";
 import type { Source } from "@/lib/types";
-import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
+export type OpenSource = (source: Source, passageNumber: number) => void;
 
 /**
- * Render answer text, turning inline `[filename]` citations that match a known
- * source into clickable chips (styled with the shadcn button variants).
+ * Render answer text, turning inline numeric citations like `[1]` / `[2, 3]`
+ * into small pill buttons that open the matching source passage.
  */
 export function AnswerText({
   text,
   sources,
-  onCite,
+  onOpenSource,
 }: {
   text: string;
   sources: Source[];
-  onCite: (filename: string) => void;
+  onOpenSource: OpenSource;
 }) {
-  const known = new Set(sources.map((s) => s.filename));
   const nodes: ReactNode[] = [];
-  const pattern = /\[([^\]]+)\]/g;
+  const pattern = /\[([\d,\s]+)\]/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
   while ((match = pattern.exec(text)) !== null) {
-    const [full, name] = match;
+    const numbers = match[1]!
+      .split(",")
+      .map((n) => parseInt(n.trim(), 10))
+      .filter((n) => n >= 1 && n <= sources.length);
+
     nodes.push(
       <Fragment key={key++}>{text.slice(lastIndex, match.index)}</Fragment>,
     );
-    if (name && known.has(name)) {
-      nodes.push(
-        <button
-          key={key++}
-          type="button"
-          onClick={() => onCite(name)}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "mx-0.5 inline h-5 gap-1 px-1.5 align-baseline text-xs font-medium",
-          )}
-        >
-          {name}
-        </button>,
-      );
+
+    if (numbers.length > 0) {
+      for (const n of numbers) {
+        nodes.push(
+          <button
+            key={key++}
+            type="button"
+            onClick={() => onOpenSource(sources[n - 1]!, n)}
+            className="relative -top-0.5 mx-0.5 inline-flex items-center rounded-full border px-1.5 text-[10.5px] font-semibold text-[var(--color-brand)]"
+            style={{
+              background: "var(--chip-bg)",
+              borderColor: "var(--chip-border)",
+            }}
+          >
+            {n}
+          </button>,
+        );
+      }
     } else {
-      nodes.push(<Fragment key={key++}>{full}</Fragment>);
+      nodes.push(<Fragment key={key++}>{match[0]}</Fragment>);
     }
-    lastIndex = match.index + full.length;
+    lastIndex = match.index + match[0].length;
   }
   nodes.push(<Fragment key={key++}>{text.slice(lastIndex)}</Fragment>);
 
-  return <p className="whitespace-pre-wrap leading-relaxed">{nodes}</p>;
+  return (
+    <div
+      className="font-serif text-[var(--color-body)]"
+      style={{ fontSize: "16.5px", lineHeight: 1.7 }}
+    >
+      <p className="whitespace-pre-wrap">{nodes}</p>
+    </div>
+  );
 }
 
-export function SourceList({
+/** Numbered source cards shown beneath an assistant answer. */
+export function SourceCards({
   sources,
-  highlighted,
+  onOpenSource,
 }: {
   sources: Source[];
-  highlighted: string | null;
+  onOpenSource: OpenSource;
 }) {
   if (sources.length === 0) return null;
   return (
-    <details className="mt-3" open>
-      <summary className="cursor-pointer select-none text-xs font-medium text-muted-foreground">
-        {sources.length} source{sources.length === 1 ? "" : "s"} retrieved
-      </summary>
-      <ul className="mt-2 space-y-2">
-        {sources.map((s) => (
-          <Card
-            key={s.chunkId}
-            data-file={s.filename}
-            className={cn(
-              "p-2.5 text-xs shadow-none transition-colors",
-              highlighted === s.filename && "border-ring ring-2 ring-ring/30",
-            )}
-          >
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <span className="flex min-w-0 items-center gap-1.5 font-medium text-card-foreground">
-                <FileText className="size-3 shrink-0 text-muted-foreground" />
-                <span className="truncate">{s.filename}</span>
+    <div className="mt-4 space-y-2">
+      <p className="section-label">Sources</p>
+      <ul className="space-y-1.5">
+        {sources.map((s, i) => (
+          <li key={s.chunkId}>
+            <button
+              type="button"
+              onClick={() => onOpenSource(s, i + 1)}
+              className="group flex w-full items-center gap-2.5 rounded-lg border border-[var(--color-divider)] bg-[var(--color-panel)] px-3 py-2 text-left transition-colors hover:border-[var(--color-brand)]"
+            >
+              <span className="flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-[var(--color-brand)] group-hover:bg-[var(--chip-bg)]">
+                {i + 1}
               </span>
-              <span className="shrink-0 text-[10px] text-muted-foreground">
-                {(s.similarity * 100).toFixed(0)}% match
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] font-medium text-[var(--color-ink)]">
+                  {s.filename}
+                </span>
+                <span className="block truncate text-[11.5px] text-[var(--color-meta)]">
+                  {(s.similarity * 100).toFixed(0)}% match · passage {i + 1}
+                </span>
               </span>
-            </div>
-            <p className="line-clamp-4 text-muted-foreground">{s.content}</p>
-          </Card>
+            </button>
+          </li>
         ))}
       </ul>
-    </details>
+    </div>
+  );
+}
+
+/** Three staggered pulsing dots, shown while the answer is streaming. */
+export function LoadingDots() {
+  return (
+    <div className="flex items-center gap-1.5 py-1">
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="loading-dot block size-[7px] rounded-full bg-[var(--color-meta)]"
+          style={{ animationDelay: `${i * 0.2}s` }}
+        />
+      ))}
+    </div>
   );
 }

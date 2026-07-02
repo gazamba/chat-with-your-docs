@@ -26,11 +26,11 @@ const sources: RetrievedChunk[] = [
 ];
 
 describe("buildContextBlock", () => {
-  it("labels each chunk with its filename and content", () => {
+  it("numbers each chunk and labels it with its filename and content", () => {
     const block = buildContextBlock(sources);
-    expect(block).toContain("Source: [eiffel.txt]");
+    expect(block).toContain("[1] Source: eiffel.txt");
     expect(block).toContain("The Eiffel Tower is 330 metres tall.");
-    expect(block).toContain("Source: [paris.md]");
+    expect(block).toContain("[2] Source: paris.md");
     expect(block).toContain("---"); // separator between chunks
   });
 });
@@ -38,8 +38,9 @@ describe("buildContextBlock", () => {
 describe("groundedSystemPrompt", () => {
   it("embeds the grounding rules and the verbatim refusal message", () => {
     const prompt = groundedSystemPrompt(sources);
-    expect(prompt).toContain("Use ONLY the context below");
+    expect(prompt).toContain("Use ONLY the numbered context below");
     expect(prompt).toContain("square brackets");
+    expect(prompt).toContain("[1]");
     expect(prompt).toContain(INSUFFICIENT_CONTEXT_MESSAGE);
     expect(prompt).toContain("The Eiffel Tower is 330 metres tall.");
   });
