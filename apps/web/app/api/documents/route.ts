@@ -8,6 +8,7 @@ import {
   type AllowedMimeType,
   type Logger,
 } from "@repo/rag";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,6 +51,14 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const log = requestLogger(crypto.randomUUID(), { route: "documents.post" });
+
+  const limit = rateLimit(`upload:${clientKey(req)}`, 10, 60_000);
+  if (!limit.ok) {
+    return NextResponse.json(
+      { error: "Too many uploads" },
+      { status: 429, headers: { "retry-after": String(limit.retryAfter) } },
+    );
+  }
 
   // Pasted text: JSON { title, text } is stored as a markdown document.
   if (req.headers.get("content-type")?.includes("application/json")) {

@@ -18,5 +18,9 @@ export {
   groundedSystemPrompt,
   INSUFFICIENT_CONTEXT_MESSAGE,
 } from "./prompt";
-export { streamGroundedAnswer, answerModel } from "./llm";
+export { streamGroundedAnswer, generateGroundedAnswer, answerModel } from "./llm";
 export type { AnswerParams } from "./llm";
+export { estimateCostUsd, embeddingCostUsd } from "./cost";
+export type { TokenUsage } from "./cost";
+export { judgeGroundedness } from "./judge";
+export type { GroundednessVerdict } from "./judge";

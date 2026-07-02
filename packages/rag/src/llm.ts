@@ -1,4 +1,4 @@
-import { streamText } from "ai";
+import { streamText, generateText } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { RAG_CONFIG, requireEnv } from "./config";
 import { groundedSystemPrompt } from "./prompt";
@@ -26,4 +26,21 @@ export function streamGroundedAnswer({ question, sources }: AnswerParams) {
     prompt: question,
     temperature: 0,
   });
+}
+
+/**
+ * Non-streaming grounded answer — used by the eval harness and integration
+ * tests where the full text is needed at once.
+ */
+export async function generateGroundedAnswer({
+  question,
+  sources,
+}: AnswerParams) {
+  const { text, usage } = await generateText({
+    model: answerModel(),
+    system: groundedSystemPrompt(sources),
+    prompt: question,
+    temperature: 0,
+  });
+  return { text, usage };
 }

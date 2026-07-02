@@ -2,6 +2,7 @@ import { chunkText } from "./chunk";
 import { extractDocumentText } from "./extract";
 import { embedTexts } from "./embed";
 import { createDocument, saveChunks, markReady, markError } from "./store";
+import { embeddingCostUsd } from "./cost";
 import type { AllowedMimeType } from "./config";
 import { logger as defaultLogger, type Logger } from "./logger";
 
@@ -66,6 +67,7 @@ export async function ingestDocument({
         chunkCount: pieces.length,
         charCount: text.length,
         embeddingTokens: tokens,
+        estimatedCostUsd: Number(embeddingCostUsd(tokens).toFixed(6)),
         ms: Math.round(performance.now() - startedAt),
       },
       "document ingested",

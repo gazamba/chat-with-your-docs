@@ -3,9 +3,13 @@ import {
   retrieve,
   streamGroundedAnswer,
   requestLogger,
+  estimateCostUsd,
+  embeddingCostUsd,
+  RAG_CONFIG,
   INSUFFICIENT_CONTEXT_MESSAGE,
   type RetrievedChunk,
 } from "@repo/rag";
+import { rateLimit, clientKey } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,6 +30,14 @@ function line(event: ChatEvent): Uint8Array {
 export async function POST(req: NextRequest) {
   const requestId = crypto.randomUUID();
   const log = requestLogger(requestId, { route: "chat" });
+
+  const limit = rateLimit(`chat:${clientKey(req)}`, 20, 60_000);
+  if (!limit.ok) {
+    return Response.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "retry-after": String(limit.retryAfter) } },
+    );
+  }
 
   const { question } = (await req.json().catch(() => ({}))) as {
     question?: unknown;
@@ -72,11 +84,18 @@ export async function POST(req: NextRequest) {
           controller.enqueue(line({ type: "delta", text: delta }));
         }
         const usage = await result.usage;
+        const costUsd =
+          estimateCostUsd(RAG_CONFIG.models.answer, {
+            inputTokens: usage?.inputTokens,
+            outputTokens: usage?.outputTokens,
+          }) + embeddingCostUsd(queryTokens);
         log.info(
           {
             ms: Math.round(performance.now() - startedAt),
             inputTokens: usage?.inputTokens,
             outputTokens: usage?.outputTokens,
+            queryTokens,
+            estimatedCostUsd: Number(costUsd.toFixed(6)),
           },
           "answer streamed",
         );

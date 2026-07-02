@@ -13,7 +13,7 @@ export const RAG_CONFIG = {
     /** Streamed grounded answers. */
     answer: "claude-sonnet-4-6",
     /** Cheap LLM-as-judge used by the eval harness. */
-    judge: "claude-haiku-4-5-20251001",
+    judge: "claude-haiku-4-5",
   },
   chunking: {
     targetChars: 2000,

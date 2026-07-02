@@ -1,0 +1,50 @@
+[
+  {
+    "question": "How tall is the Eiffel Tower?",
+    "expectDoc": "eiffel-tower.md",
+    "expectFacts": ["330"]
+  },
+  {
+    "question": "Who designed the Eiffel Tower?",
+    "expectDoc": "eiffel-tower.md",
+    "expectFacts": ["Eiffel"]
+  },
+  {
+    "question": "When was the Eiffel Tower completed?",
+    "expectDoc": "eiffel-tower.md",
+    "expectFacts": ["1889"]
+  },
+  {
+    "question": "What is photosynthesis?",
+    "expectDoc": "photosynthesis.md",
+    "expectFacts": ["light", "energy"]
+  },
+  {
+    "question": "What does photosynthesis produce?",
+    "expectDoc": "photosynthesis.md",
+    "expectFacts": ["glucose", "oxygen"]
+  },
+  {
+    "question": "Where does photosynthesis take place?",
+    "expectDoc": "photosynthesis.md",
+    "expectFacts": ["chloroplast"]
+  },
+  {
+    "question": "How long is the Great Wall of China?",
+    "expectDoc": "great-wall.md",
+    "expectFacts": ["21,196", "kilomet"]
+  },
+  {
+    "question": "Why was the Great Wall of China built?",
+    "expectDoc": "great-wall.md",
+    "expectFacts": ["invasions", "protect"]
+  },
+  {
+    "question": "What is the capital of Japan?",
+    "expectRefusal": true
+  },
+  {
+    "question": "Who won the 2018 FIFA World Cup?",
+    "expectRefusal": true
+  }
+]
