@@ -10,3 +10,13 @@ export { embedTexts, embedQuery } from "./embed";
 export * from "./store";
 export { ingestDocument } from "./ingest";
 export type { IngestInput, IngestResult } from "./ingest";
+
+export { retrieve } from "./retrieve";
+export type { RetrievedChunk, RetrieveResult } from "./retrieve";
+export {
+  buildContextBlock,
+  groundedSystemPrompt,
+  INSUFFICIENT_CONTEXT_MESSAGE,
+} from "./prompt";
+export { streamGroundedAnswer, answerModel } from "./llm";
+export type { AnswerParams } from "./llm";

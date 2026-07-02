@@ -1,5 +1,15 @@
 export type DocumentStatus = "processing" | "ready" | "error";
 
+/** A retrieved source chunk returned alongside a chat answer. */
+export interface Source {
+  chunkId: string;
+  documentId: string;
+  filename: string;
+  chunkIndex: number;
+  content: string;
+  similarity: number;
+}
+
 /** Document as serialised by the API (dates become ISO strings over JSON). */
 export interface DocumentDTO {
   id: string;
