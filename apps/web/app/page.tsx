@@ -1,16 +1,25 @@
+import { DocumentsPanel } from "@/components/documents-panel";
+
 export default function HomePage() {
   return (
-    <main className="mx-auto flex min-h-screen max-w-2xl flex-col items-center justify-center gap-4 p-8 text-center">
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Chat with your docs
-      </h1>
-      <p className="text-slate-600">
-        Upload documents and ask questions — answers are grounded in your
-        sources with inline citations.
-      </p>
-      <p className="text-sm text-slate-400">
-        Setup in progress. The chat and upload UI arrive in the next steps.
-      </p>
-    </main>
+    <div className="mx-auto flex h-screen max-w-6xl flex-col p-4 sm:p-6">
+      <header className="mb-4 shrink-0">
+        <h1 className="text-lg font-semibold tracking-tight text-slate-900">
+          Chat with your docs
+        </h1>
+        <p className="text-sm text-slate-500">
+          Grounded answers with inline citations from your documents.
+        </p>
+      </header>
+
+      <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 lg:grid-cols-[340px_1fr]">
+        <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <DocumentsPanel />
+        </aside>
+        <section className="flex items-center justify-center rounded-xl border border-slate-200 bg-white p-6 text-sm text-slate-400 shadow-sm">
+          Chat arrives in the next step.
+        </section>
+      </div>
+    </div>
   );
 }
