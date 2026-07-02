@@ -1,0 +1,3 @@
+1. Create turbo repo Next.js for full stack app, Neon db + drizzle + pgvector for embeddings, LLM Claude sonnet or Haiku for cheap calls, Talwind and Shadcn/ui for UI, Run local with docker, open to deploy to vercel as well.
+2. Chat with Claude about the project by giving the idea, teck stake I chose and asked him a claude code prompt so I can paste for claude to start planning the changes. I like to brainstor with claude web about what I want to build and then I can decide better about my choices.
+3. 
