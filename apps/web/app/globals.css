@@ -71,6 +71,11 @@
   * {
     border-color: var(--border);
   }
+  /* Tailwind v4 preflight no longer sets this — restore pointer on buttons. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
   html,
   body {
     height: 100%;

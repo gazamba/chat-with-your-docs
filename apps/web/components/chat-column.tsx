@@ -75,8 +75,8 @@ export function ChatColumn({ onOpenSource }: { onOpenSource: OpenSource }) {
 
   return (
     <div className="flex h-full min-w-0 flex-1 flex-col bg-[var(--background)]">
-      {/* Header */}
-      <div className="shrink-0 border-b border-[var(--color-divider)] px-6 py-3.5">
+      {/* Header — same fixed height + top padding as the sidebar brand row */}
+      <div className="flex h-[60px] shrink-0 flex-col justify-start border-b border-[var(--color-divider)] px-6 pt-[14px]">
         <h1 className="text-[14.5px] font-semibold text-[var(--color-ink)]">
           Chat
         </h1>

@@ -28,6 +28,7 @@ export function groundedSystemPrompt(sources: RetrievedChunk[]): string {
     "- Cite the source of each claim inline using its number in square brackets, e.g. [1] or [2]. Cite every claim.",
     `- If the context does not contain the answer, reply with exactly: "${INSUFFICIENT_CONTEXT_MESSAGE}"`,
     "- Be concise. Quote or closely paraphrase the source rather than embellishing.",
+    "- Format the reply as clean, simple Markdown: short paragraphs and, where useful, `-` bullet points each on its own line. Do NOT use Markdown headings (#) or nested bullets.",
     "",
     "Context:",
     buildContextBlock(sources),

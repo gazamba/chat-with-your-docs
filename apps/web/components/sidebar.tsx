@@ -5,15 +5,22 @@ import { Upload, ClipboardType, Loader2, X } from "lucide-react";
 import type { DocumentDTO } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { PasteModal } from "@/components/paste-modal";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 const OUTLINE =
-  "h-9 flex-1 justify-center gap-2 rounded-lg border-[#d6d4c8] text-[13px] font-medium text-[var(--color-body)] hover:bg-[#ebeae1]";
+  "h-9 min-w-0 flex-1 justify-center gap-1.5 rounded-lg border-[#d6d4c8] px-2.5 text-[13px] font-medium text-[var(--color-body)] hover:bg-[#ebeae1]";
 
 export function Sidebar() {
   const [documents, setDocuments] = useState<DocumentDTO[]>([]);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pasteOpen, setPasteOpen] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<DocumentDTO | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const refresh = useCallback(async () => {
@@ -86,16 +93,18 @@ export function Sidebar() {
 
   return (
     <aside className="flex h-full w-[272px] shrink-0 flex-col border-r border-[var(--color-sidebar-border)] bg-[var(--color-sidebar)]">
-      {/* Brand */}
-      <div className="flex items-center gap-2 px-5 pb-4 pt-5">
-        <span className="size-2.5 rounded-full bg-[var(--color-brand)]" />
-        <span className="font-serif text-[15px] font-semibold text-[var(--color-ink)]">
-          Chat with your docs
-        </span>
+      {/* Brand — fixed-height header, top-aligned to match the chat title line */}
+      <div className="flex h-[60px] shrink-0 flex-col justify-start border-b border-[var(--color-sidebar-border)] px-5 pt-[14px]">
+        <div className="flex items-center gap-2">
+          <span className="size-2.5 rounded-full bg-[var(--color-brand)]" />
+          <span className="font-serif text-[15px] font-semibold text-[var(--color-ink)]">
+            Chat with your docs
+          </span>
+        </div>
       </div>
 
       {/* Actions */}
-      <div className="flex gap-2 px-4">
+      <div className="flex gap-2 px-4 pt-4">
         <Button
           variant="outline"
           className={OUTLINE}
@@ -161,7 +170,7 @@ export function Sidebar() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => void remove(doc.id)}
+                  onClick={() => setPendingDelete(doc)}
                   aria-label={`Remove ${doc.filename}`}
                   className="shrink-0 rounded p-0.5 text-[var(--color-meta)] opacity-0 transition-opacity hover:text-[#b3261e] group-hover:opacity-100"
                 >
@@ -184,6 +193,38 @@ export function Sidebar() {
         onOpenChange={setPasteOpen}
         onSubmit={pasteText}
       />
+
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDelete(null);
+        }}
+      >
+        <DialogContent className="w-[420px]">
+          <DialogTitle>Delete document?</DialogTitle>
+          <DialogDescription className="mt-2 text-[var(--color-body)]">
+            Permanently delete{" "}
+            <strong className="font-semibold text-[var(--color-ink)]">
+              {pendingDelete?.filename}
+            </strong>{" "}
+            and all its passages? This cannot be undone.
+          </DialogDescription>
+          <div className="mt-5 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setPendingDelete(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (pendingDelete) void remove(pendingDelete.id);
+                setPendingDelete(null);
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </aside>
   );
 }
