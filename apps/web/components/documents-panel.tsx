@@ -1,13 +1,28 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Upload,
+  FileText,
+  Trash2,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import type { DocumentDTO, DocumentStatus } from "@/lib/types";
 import { formatBytes } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card } from "@/components/ui/card";
 
-const STATUS_STYLES: Record<DocumentStatus, string> = {
-  processing: "bg-amber-100 text-amber-700",
-  ready: "bg-emerald-100 text-emerald-700",
-  error: "bg-red-100 text-red-700",
+const STATUS_VARIANT: Record<
+  DocumentStatus,
+  "success" | "warning" | "destructive"
+> = {
+  ready: "success",
+  processing: "warning",
+  error: "destructive",
 };
 
 export function DocumentsPanel() {
@@ -71,8 +86,10 @@ export function DocumentsPanel() {
   return (
     <div className="flex h-full flex-col gap-4">
       <div>
-        <h2 className="text-sm font-semibold text-slate-700">Documents</h2>
-        <p className="text-xs text-slate-400">PDF, TXT or Markdown · up to 10MB</p>
+        <h2 className="text-sm font-semibold text-foreground">Documents</h2>
+        <p className="text-xs text-muted-foreground">
+          PDF, TXT or Markdown · up to 10MB
+        </p>
       </div>
 
       <label
@@ -86,11 +103,12 @@ export function DocumentsPanel() {
           setDragging(false);
           void upload(e.dataTransfer.files);
         }}
-        className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-6 text-center transition-colors",
           dragging
-            ? "border-slate-900 bg-slate-50"
-            : "border-slate-200 hover:border-slate-300"
-        }`}
+            ? "border-primary bg-accent"
+            : "border-border hover:border-muted-foreground/40 hover:bg-accent/40",
+        )}
       >
         <input
           ref={inputRef}
@@ -100,63 +118,80 @@ export function DocumentsPanel() {
           className="hidden"
           onChange={(e) => void upload(e.target.files)}
         />
-        <span className="text-sm font-medium text-slate-600">
+        {uploading ? (
+          <Loader2 className="size-5 animate-spin text-muted-foreground" />
+        ) : (
+          <Upload className="size-5 text-muted-foreground" />
+        )}
+        <span className="text-sm font-medium text-foreground">
           {uploading ? "Uploading…" : "Drop files or click to upload"}
         </span>
-        <span className="text-xs text-slate-400">
-          Text is extracted, chunked and embedded on upload
+        <span className="text-xs text-muted-foreground">
+          Extracted, chunked &amp; embedded on upload
         </span>
       </label>
 
       {error && (
-        <p className="rounded-md bg-red-50 px-3 py-2 text-xs text-red-600">
+        <p className="flex items-center gap-2 rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          <AlertCircle className="size-3.5 shrink-0" />
           {error}
         </p>
       )}
 
-      <div className="flex-1 space-y-2 overflow-y-auto">
+      <div className="-mr-1 flex-1 space-y-2 overflow-y-auto pr-1">
         {loading ? (
-          <p className="text-xs text-slate-400">Loading…</p>
+          <>
+            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-16 w-full" />
+          </>
         ) : documents.length === 0 ? (
-          <p className="text-xs text-slate-400">
-            No documents yet. Upload one to start asking questions.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <FileText className="size-6 text-muted-foreground/50" />
+            <p className="text-xs text-muted-foreground">
+              No documents yet. Upload one to start asking questions.
+            </p>
+          </div>
         ) : (
           documents.map((doc) => (
-            <div
-              key={doc.id}
-              className="group rounded-lg border border-slate-200 bg-white p-3"
-            >
+            <Card key={doc.id} className="group p-3">
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-slate-800">
-                    {doc.filename}
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    {formatBytes(doc.size)}
-                    {doc.status === "ready" &&
-                      ` · ${doc.chunkCount} chunk${doc.chunkCount === 1 ? "" : "s"}`}
-                  </p>
+                <div className="flex min-w-0 items-start gap-2">
+                  <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-card-foreground">
+                      {doc.filename}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatBytes(doc.size)}
+                      {doc.status === "ready" &&
+                        ` · ${doc.chunkCount} chunk${doc.chunkCount === 1 ? "" : "s"}`}
+                    </p>
+                  </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  <span
-                    className={`rounded-full px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide ${STATUS_STYLES[doc.status]}`}
-                  >
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Badge variant={STATUS_VARIANT[doc.status]}>
+                    {doc.status === "processing" && (
+                      <Loader2 className="size-2.5 animate-spin" />
+                    )}
                     {doc.status}
-                  </span>
-                  <button
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
                     onClick={() => void remove(doc.id)}
-                    className="text-xs text-slate-300 opacity-0 transition-opacity hover:text-red-500 group-hover:opacity-100"
+                    className="text-muted-foreground opacity-0 transition-opacity hover:text-destructive group-hover:opacity-100"
                     aria-label={`Delete ${doc.filename}`}
                   >
-                    ✕
-                  </button>
+                    <Trash2 />
+                  </Button>
                 </div>
               </div>
               {doc.status === "error" && doc.errorMessage && (
-                <p className="mt-1 text-xs text-red-500">{doc.errorMessage}</p>
+                <p className="mt-2 rounded-md bg-destructive/10 px-2 py-1 text-xs text-destructive">
+                  {doc.errorMessage}
+                </p>
               )}
-            </div>
+            </Card>
           ))
         )}
       </div>

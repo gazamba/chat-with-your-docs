@@ -1,9 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Send, Sparkles, Loader2 } from "lucide-react";
 import type { Source } from "@/lib/types";
 import { streamChat } from "@/lib/chat-client";
 import { AnswerText, SourceList } from "@/components/message";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 
 interface ChatMessage {
   id: string;
@@ -31,6 +35,10 @@ export function Chat() {
 
   const onCite = useCallback((filename: string) => {
     setHighlighted(filename);
+    // Reveal the matching source passage.
+    scrollRef.current
+      ?.querySelector(`[data-file="${CSS.escape(filename)}"]`)
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, []);
 
   const send = useCallback(
@@ -67,7 +75,9 @@ export function Chat() {
         },
         onError: (error) => update({ error }),
       }).catch((e: unknown) =>
-        update({ error: e instanceof Error ? e.message : "Something went wrong" }),
+        update({
+          error: e instanceof Error ? e.message : "Something went wrong",
+        }),
       );
 
       setStreaming(false);
@@ -82,23 +92,27 @@ export function Chat() {
       <div ref={scrollRef} className="flex-1 space-y-6 overflow-y-auto p-1">
         {empty ? (
           <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+            <div className="flex size-10 items-center justify-center rounded-full bg-accent">
+              <Sparkles className="size-5 text-muted-foreground" />
+            </div>
             <div>
-              <p className="text-sm font-medium text-slate-600">
+              <p className="text-sm font-medium text-foreground">
                 Ask a question about your documents
               </p>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Answers are grounded in your sources with inline citations.
               </p>
             </div>
             <div className="flex flex-wrap justify-center gap-2">
               {SUGGESTIONS.map((s) => (
-                <button
+                <Button
                   key={s}
+                  variant="outline"
+                  size="sm"
                   onClick={() => void send(s)}
-                  className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-500 hover:border-slate-300 hover:text-slate-700"
                 >
                   {s}
-                </button>
+                </Button>
               ))}
             </div>
           </div>
@@ -106,15 +120,15 @@ export function Chat() {
           messages.map((msg) =>
             msg.role === "user" ? (
               <div key={msg.id} className="flex justify-end">
-                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-slate-900 px-4 py-2 text-sm text-white">
+                <div className="max-w-[85%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground">
                   {msg.content}
                 </div>
               </div>
             ) : (
-              <div key={msg.id} className="flex flex-col items-start">
-                <div className="max-w-[95%] rounded-2xl rounded-bl-sm bg-white px-4 py-3 text-sm text-slate-800 shadow-sm ring-1 ring-slate-100">
+              <div key={msg.id} className="flex justify-start">
+                <Card className="max-w-[95%] px-4 py-3 text-sm text-card-foreground">
                   {msg.error ? (
-                    <p className="text-red-500">{msg.error}</p>
+                    <p className="text-destructive">{msg.error}</p>
                   ) : msg.content ? (
                     <AnswerText
                       text={msg.content}
@@ -122,14 +136,15 @@ export function Chat() {
                       onCite={onCite}
                     />
                   ) : (
-                    <span className="inline-flex gap-1 text-slate-400">
-                      <span className="animate-pulse">Thinking…</span>
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Loader2 className="size-3.5 animate-spin" />
+                      Thinking…
                     </span>
                   )}
                   {msg.sources && (
                     <SourceList sources={msg.sources} highlighted={highlighted} />
                   )}
-                </div>
+                </Card>
               </div>
             ),
           )
@@ -141,9 +156,9 @@ export function Chat() {
           e.preventDefault();
           void send(input);
         }}
-        className="mt-3 flex items-end gap-2 border-t border-slate-100 pt-3"
+        className="mt-3 flex items-end gap-2 border-t border-border pt-3"
       >
-        <textarea
+        <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => {
@@ -154,15 +169,20 @@ export function Chat() {
           }}
           rows={1}
           placeholder="Ask a question…"
-          className="max-h-32 flex-1 resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-slate-400"
+          className="max-h-32 min-h-9 flex-1 resize-none"
         />
-        <button
+        <Button
           type="submit"
+          size="icon"
           disabled={streaming || !input.trim()}
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
+          aria-label="Send"
         >
-          {streaming ? "…" : "Send"}
-        </button>
+          {streaming ? (
+            <Loader2 className="animate-spin" />
+          ) : (
+            <Send />
+          )}
+        </Button>
       </form>
     </div>
   );
